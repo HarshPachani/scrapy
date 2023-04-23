@@ -1,0 +1,21 @@
+1.scrapy startproject quotetutorial(project name)
+2.cd quotetutorial(project name)
+3.scrapy crawl quotes(it is a name of "spiders/projectname")
+
+4. to store the data into some kind of database or files 
+    EX:- scrapy crawl quotes -o items. json (-o stands for output).
+
+5. Now to storing the data into database.
+    first we have to activate pipelines.py file -> Go to settings.py and uncomment ITEM_PIPELINES.
+    EX:- ITEM_PIPELINES = {
+                    "quotetutorial.pipelines.QuotetutorialPipeline": 300,
+                    }
+    Now the file is activated.            
+            
+6. To store data in sqlite3 we can do that with pipelines.py file
+
+
+Note: Create a Virtual Environment
+1. pip install pipenv
+2. virtualenv .
+3. ./Scripts/activate -> To activate virtual Environment
