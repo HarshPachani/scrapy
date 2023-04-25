@@ -8,7 +8,8 @@ from django.utils import timezone
 from django.core.exceptions import ObjectDoesNotExist
 from MyApp.models import PetrolPrice
 from django.db import transaction
-import sqlite3
+# import sqlite3
+import json
 
 
 # Create your views here.
@@ -103,19 +104,11 @@ def index(request):
             petrol_price.remove(value)
             break
 
-    conn = sqlite3.connect("Petrol.db")
-    curr = conn.cursor()
-    curr.execute("""CREATE TABLE IF NOT EXISTS data(
-                        city TEXT,
-                        price INTEGER,
-                        time TEXT
-            )""")
+    with open("data.json", "w") as fp:
+        json.dump(res,fp, indent = 4)
 
-    for city, price in res.items():
-        curr.execute("""INSERT INTO data(city, price, time) VALUES(?, ?, ?)""", (city, price, date))
-    print("Data Added Successfully!!")
-    
-    return HttpResponse(f"Petrol{petrol_city}, price{petrol_price} and \n result: {res}")
+    return HttpResponse(f"Petrol{petrol_city}, price{petrol_price} ")
+    # return (result)
 
 
 # =====css selector for today petrol price for even rows===
