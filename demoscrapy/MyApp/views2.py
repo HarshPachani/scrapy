@@ -10,6 +10,23 @@ from MyApp.models import PetrolPrice
 from django.db import transaction
 import json
 
+#firebase
+import pyrebase
+from django.contrib import auth
+firebaseConfig = {
+  "apiKey": "AIzaSyCEkfHiHtfF_2s77i74B1w0wcQEzmy1mVs",
+  "authDomain": "zfuel-20d20.firebaseapp.com",
+  "databaseURL": "https://zfuel-20d20-default-rtdb.firebaseio.com",
+  "projectId": "zfuel-20d20",
+  "storageBucket": "zfuel-20d20.appspot.com",
+  "messagingSenderId": "1034309350107",
+  "appId": "1:1034309350107:web:ba30e45b76d1bb505592fe",
+  "measurementId": "G-46T0SVX0F1"
+}
+
+firebase = pyrebase.initialize_app(firebaseConfig)
+database = firebase.database()
+
 # Create your views here.
 def index(request):
 
@@ -101,5 +118,7 @@ def index(request):
 
     with open('data.json') as json_file:
         data = json.load(json_file)
+
+    database.child("data").set(data)
 
     return JsonResponse(data)
