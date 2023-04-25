@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 
 import requests
 from datetime import datetime
@@ -15,11 +15,11 @@ import json
 # Create your views here.
 def index(request):
 
-    petrol_price_even_ = []
-    petrol_price_odd_ = []
+    even_price = []
+    odd_price = []
 
-    cities_even_ = []
-    cities_odd_ = []
+    even_cities = []
+    odd_cities = []
 
     # Define the URL to scrape
     url = 'https://www.goodreturns.in/petrol-price-in-gujarat-s12.html'
@@ -42,53 +42,46 @@ def index(request):
         for j in range(1, len(petrol_price_even), 3):
             selector = Selector(text=petrol_price_even[j])
             price = selector.css('td::text').get()
-            petrol_price_even_.append(float(price[2:]))
-            # print(f'{price[2:]}')
+            even_price.append(float(price[2:]))
 
         for j in range(1, len(petrol_price_odd), 3):
             selector = Selector(text=petrol_price_odd[j])
             price = selector.css('td::text').get()
-            petrol_price_odd_.append(float(price[2:]))
-            # print(f'{price[2:]}')
+            odd_price.append(float(price[2:]))
 
-        print((petrol_price_even_+petrol_price_odd_))
+        print((even_price+odd_price))
 
-        petrol_price = petrol_price_even_+petrol_price_odd_
+        petrol_price = even_price+odd_price
         print(petrol_price)
-        
-        # print(petrol_price_even)
-
+    
         for i in petrol_price_even:
             selector = Selector(text=i)
             city = selector.css('td a::attr(title)').get()
-            # price = selector.css('td::text').get()[1]
             print("City: ", city)
             if city is None:
                 pass
             else:
                 # pass
                 print(f"{city} : city")
-                cities_even_.append(city)
-                # print(f"{price} : Price")
+                even_cities.append(city)
 
         for i in petrol_price_odd:
             selector = Selector(text=i)
             city = selector.css('td a::attr(title)').get()
-            # print("City: ", city)
             if city is None:
                 pass
             else:
-                cities_odd_.append(city)
+                odd_cities.append(city)
         
         print("Even Cities: ")
-        for city in cities_even_:
+        for city in even_cities:
             print(city)
     
         print("Odd Cities: ")
-        for city in cities_odd_:
+        for city in odd_cities:
             print(city)
 
-        petrol_city = cities_even_ + cities_odd_
+        petrol_city = even_cities + odd_cities
         print(petrol_city)
 
 
@@ -107,11 +100,8 @@ def index(request):
     with open("data.json", "w") as fp:
         json.dump(res,fp, indent = 4)
 
-    return HttpResponse(f"Petrol{petrol_city}, price{petrol_price} ")
-    # return (result)
 
+    with open('data.json') as json_file:
+        data = json.load(json_file)
 
-# =====css selector for today petrol price for even rows===
-
-# petrol_price = selector.css(
-    # '.gold_silver_table table .even_row td').getall()[1]
+    return JsonResponse(data)

@@ -8,6 +8,7 @@ from django.utils import timezone
 from django.core.exceptions import ObjectDoesNotExist
 from MyApp.models import PetrolPrice
 from django.db import transaction
+import sqlite3
 
 
 # Create your views here.
@@ -15,6 +16,10 @@ def index(request):
 
     petrol_price_even_ = []
     petrol_price_odd_ = []
+
+    cities_even_ = []
+    cities_odd_ = []
+
     # Define the URL to scrape
     url = 'https://www.goodreturns.in/petrol-price-in-gujarat-s12.html'
 
@@ -24,9 +29,6 @@ def index(request):
     # Use scrapy to parse the HTML content
     selector = Selector(text=response.text)
 
-    price_odd = []
-    price_even = []
-
     # Extract the petrol price from the parsed HTML
     try:
         petrol_price_even = selector.css(
@@ -35,54 +37,87 @@ def index(request):
         petrol_price_odd = selector.css(
             '.gold_silver_table table .odd_row td').getall()
 
-        print("\t\t\tHere")
         # access for the today's petrol price only
         for j in range(1, len(petrol_price_even), 3):
             selector = Selector(text=petrol_price_even[j])
             price = selector.css('td::text').get()
             petrol_price_even_.append(float(price[2:]))
-            print(f'{price[2:]}')
-            price_even.append(price[2:])
+            # print(f'{price[2:]}')
 
         for j in range(1, len(petrol_price_odd), 3):
             selector = Selector(text=petrol_price_odd[j])
             price = selector.css('td::text').get()
             petrol_price_odd_.append(float(price[2:]))
-            print(f'odd Price: {price[2:]}')
-            price_odd.append(price[2:]) 
+            # print(f'{price[2:]}')
 
-        print("Price odd: ", price_odd)
-        print("Price even: ", price_even)
+        print((petrol_price_even_+petrol_price_odd_))
 
-        prices = price_odd + price_even
-        print("All over price: ", prices)
+        petrol_price = petrol_price_even_+petrol_price_odd_
+        print(petrol_price)
         
-        # print((petrol_price_even_+petrol_price_odd_))
-        print("Even: ", petrol_price_even_)
-        print()
-        print("Odd: ", petrol_price_odd_)
-        petrol_price = petrol_price_even+petrol_price_odd
+        # print(petrol_price_even)
 
-        # print(petrol_price)
-
-        for i in petrol_price:
+        for i in petrol_price_even:
             selector = Selector(text=i)
             city = selector.css('td a::attr(title)').get()
-            price = selector.css('td::text').get()[1]
+            # price = selector.css('td::text').get()[1]
+            print("City: ", city)
             if city is None:
-                # pass
-                print(f"{city} : city")
-                print(f"{price} : Price")
+                pass
             else:
                 # pass
                 print(f"{city} : city")
-                print(f"{price} : Price")
+                cities_even_.append(city)
+                # print(f"{price} : Price")
+
+        for i in petrol_price_odd:
+            selector = Selector(text=i)
+            city = selector.css('td a::attr(title)').get()
+            # print("City: ", city)
+            if city is None:
+                pass
+            else:
+                cities_odd_.append(city)
+        
+        print("Even Cities: ")
+        for city in cities_even_:
+            print(city)
+    
+        print("Odd Cities: ")
+        for city in cities_odd_:
+            print(city)
+
+        petrol_city = cities_even_ + cities_odd_
+        print(petrol_city)
+
+
 
     except Exception as e:
-        return HttpResponse(f"Failed{e}")
+        return HttpResponse('Failed')
     date = datetime.now()
 
-    return HttpResponse(f"Petrol")
+    res = {}
+    for key in petrol_city:
+        for value in petrol_price:
+            res[key] = value
+            petrol_price.remove(value)
+            break
+
+    conn = sqlite3.connect("Petrol.db")
+    curr = conn.cursor()
+    curr.execute("""CREATE TABLE IF NOT EXISTS data(
+                        city TEXT,
+                        price INTEGER,
+                        time TEXT
+            )""")
+
+    for city, price in res.items():
+        curr.execute("""INSERT INTO data(city, price, time) VALUES(?, ?, ?)""", (city, price, date))
+    print("Data Added Successfully!!")
+
+    conn.commit()
+    
+    return HttpResponse(f"Petrol{petrol_city}, price{petrol_price} and \n result: {res}")
 
 
 # =====css selector for today petrol price for even rows===
