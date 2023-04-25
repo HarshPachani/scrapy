@@ -106,11 +106,9 @@ def index(request):
     date = datetime.now()
 
     res = {}
-    for key in petrol_city:
-        for value in petrol_price:
-            res[key] = value
-            petrol_price.remove(value)
-            break
+    for key, value in zip(petrol_city, petrol_price):
+        res[key] = value
+    # print("Result: ", res)
 
     with open("data.json", "w") as fp:
         json.dump(res,fp, indent = 4)
